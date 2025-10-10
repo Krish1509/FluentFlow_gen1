@@ -1,5 +1,6 @@
 import { ToggleGroup, ToggleGroupItem } from "@radix-ui/react-toggle-group";
 import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { useVoiceChat } from "../logic/useVoiceChat";
 import { Button } from "../Button";
@@ -18,9 +19,10 @@ export const AvatarControls: React.FC = () => {
   const { interrupt } = useInterrupt();
 
   return (
-    <div className="flex flex-col gap-3 relative w-full items-center">
+    <div className="flex flex-col gap-4 relative w-full items-center">
+      {/* Modern Toggle Group */}
       <ToggleGroup
-        className={`bg-zinc-700 rounded-lg p-1 ${isVoiceChatLoading ? "opacity-50" : ""}`}
+        className={`bg-gray-100/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl p-1 border border-gray-200 dark:border-gray-700/50 ${isVoiceChatLoading ? "opacity-50" : ""}`}
         disabled={isVoiceChatLoading}
         type="single"
         value={isVoiceChatActive || isVoiceChatLoading ? "voice" : "text"}
@@ -37,24 +39,42 @@ export const AvatarControls: React.FC = () => {
         }}
       >
         <ToggleGroupItem
-          className="data-[state=on]:bg-zinc-800 rounded-lg p-2 text-sm w-[90px] text-center"
+          className="data-[state=on]:bg-purple-600 data-[state=on]:text-white data-[state=on]:shadow-lg rounded-lg px-4 py-2 text-sm font-medium w-[100px] text-center transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300"
           value="voice"
         >
-          Voice Chat
+          🎤 Voice Chat
         </ToggleGroupItem>
         <ToggleGroupItem
-          className="data-[state=on]:bg-zinc-800 rounded-lg p-2 text-sm w-[90px] text-center"
+          className="data-[state=on]:bg-purple-600 data-[state=on]:text-white data-[state=on]:shadow-lg rounded-lg px-4 py-2 text-sm font-medium w-[100px] text-center transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300"
           value="text"
         >
-          Text Chat
+          💬 Text Chat
         </ToggleGroupItem>
       </ToggleGroup>
-      {isVoiceChatActive || isVoiceChatLoading ? <AudioInput /> : <TextInput />}
-      <div className="absolute top-[-70px] right-3">
-        <Button className="!bg-zinc-700 !text-white" onClick={interrupt}>
-          Interrupt
+
+      {/* Main Input Area */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="w-full"
+      >
+        {isVoiceChatActive || isVoiceChatLoading ? <AudioInput /> : <TextInput />}
+      </motion.div>
+
+      {/* Interrupt Button */}
+      <motion.div 
+        className="absolute top-[-80px] right-3"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <Button 
+          className="!bg-red-600/90 hover:!bg-red-700 !text-white !px-4 !py-2 rounded-lg shadow-lg backdrop-blur-sm border border-red-500/30" 
+          onClick={interrupt}
+        >
+          ⏹️ Interrupt
         </Button>
-      </div>
+      </motion.div>
     </div>
   );
 };

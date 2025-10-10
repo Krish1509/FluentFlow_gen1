@@ -2,7 +2,6 @@ import "@/styles/globals.css";
 import { Metadata } from "next";
 import { Fira_Code as FontMono, Inter as FontSans } from "next/font/google";
 
-import NavBar from "@/components/NavBar";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -16,11 +15,11 @@ const fontMono = FontMono({
 
 export const metadata: Metadata = {
   title: {
-    default: "HeyGen Interactive Avatar SDK Demo",
-    template: `%s - HeyGen Interactive Avatar SDK Demo`,
+    default: "FluentFlow - AI Communication Coach",
+    template: `%s - FluentFlow`,
   },
   icons: {
-    icon: "/heygen-logo.png",
+    icon: "/favicon.ico",
   },
 };
 
@@ -36,9 +35,8 @@ export default function RootLayout({
       lang="en"
     >
       <head />
-      <body className="min-h-screen bg-black text-white">
-        <main className="relative flex flex-col gap-6 h-screen w-screen">
-          <NavBar />
+      <body className="min-h-screen bg-black text-white" suppressHydrationWarning>
+        <main className="h-screen w-screen">
           {children}
         </main>
       </body>

@@ -22,11 +22,11 @@ export function Select<T>(props: SelectProps<T>) {
       open={isOpen}
       onOpenChange={setIsOpen}
     >
-      <SelectPrimitive.Trigger className="w-full text-white text-sm bg-zinc-700 py-2 px-6 rounded-lg cursor-pointer flex items-center justify-between h-fit disabled:opacity-50 min-h-[36px]">
-        <div className={`${props.value ? "text-white" : "text-zinc-400"}`}>
+      <SelectPrimitive.Trigger className="w-full text-gray-900 dark:text-white text-sm bg-gray-100 dark:bg-zinc-700 py-2 px-6 rounded-lg cursor-pointer flex items-center justify-between h-fit disabled:opacity-50 min-h-[36px] border border-gray-300 dark:border-zinc-600 hover:bg-gray-200 dark:hover:bg-zinc-600 transition-colors duration-200">
+        <div className={`${props.value ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-zinc-400"}`}>
           {props.value ? props.value : props.placeholder}
         </div>
-        <ChevronDownIcon className="w-4 h-4" />
+        <ChevronDownIcon className="w-4 h-4 text-gray-600 dark:text-gray-400" />
       </SelectPrimitive.Trigger>
 
       <SelectPrimitive.Portal>
@@ -35,15 +35,15 @@ export function Select<T>(props: SelectProps<T>) {
           position="popper"
           sideOffset={5}
         >
-          <SelectPrimitive.Viewport className="rounded-lg border border-zinc-600 bg-zinc-700 shadow-lg py-1">
+          <SelectPrimitive.Viewport className="rounded-lg border border-gray-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 shadow-lg py-1">
             {props.options.map((option) => {
               const isSelected = props.isSelected(option);
 
               return (
                 <div
                   key={props.renderOption(option)?.toString()}
-                  className={`py-2 px-4 cursor-pointer hover:bg-zinc-600 outline-none text-sm ${
-                    isSelected ? "text-white bg-zinc-500" : "text-zinc-400"
+                  className={`py-2 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-600 outline-none text-sm transition-colors duration-200 ${
+                    isSelected ? "text-gray-900 dark:text-white bg-gray-200 dark:bg-zinc-500" : "text-gray-700 dark:text-zinc-400"
                   }`}
                   onClick={() => {
                     props.onSelect(option);

@@ -15,14 +15,28 @@ export const useVoiceChat = () => {
 
   const startVoiceChat = useCallback(
     async (isInputAudioMuted?: boolean) => {
-      if (!avatarRef.current) return;
-      setIsVoiceChatLoading(true);
-      await avatarRef.current?.startVoiceChat({
-        isInputAudioMuted,
-      });
-      setIsVoiceChatLoading(false);
-      setIsVoiceChatActive(true);
-      setIsMuted(!!isInputAudioMuted);
+      if (!avatarRef.current) {
+        console.error("Avatar ref is not available");
+        return;
+      }
+      
+      try {
+        setIsVoiceChatLoading(true);
+        console.log('Starting voice chat with muted:', isInputAudioMuted);
+        await avatarRef.current?.startVoiceChat({
+          isInputAudioMuted,
+        });
+        setIsVoiceChatLoading(false);
+        setIsVoiceChatActive(true);
+        setIsMuted(!!isInputAudioMuted);
+        console.log('Voice chat started successfully');
+      } catch (error) {
+        console.error('Failed to start voice chat:', error);
+        setIsVoiceChatLoading(false);
+        setIsVoiceChatActive(false);
+        // Show user-friendly error message
+        alert('Failed to start voice chat. Please check your microphone permissions and try again.');
+      }
     },
     [avatarRef, setIsMuted, setIsVoiceChatActive, setIsVoiceChatLoading],
   );
