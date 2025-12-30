@@ -51,6 +51,7 @@ type StreamingAvatarContextProps = {
     detail: StreamingTalkingMessageEvent;
   }) => void;
   handleEndMessage: () => void;
+  addUserMessage: (message: string) => void;
 
   isListening: boolean;
   setIsListening: (isListening: boolean) => void;
@@ -81,6 +82,7 @@ const StreamingAvatarContext = React.createContext<StreamingAvatarContextProps>(
     handleUserTalkingMessage: () => {},
     handleStreamingTalkingMessage: () => {},
     handleEndMessage: () => {},
+    addUserMessage: () => {},
     isListening: false,
     setIsListening: () => {},
     isUserTalking: false,
@@ -181,6 +183,17 @@ const useStreamingAvatarMessageState = () => {
     currentSenderRef.current = null;
   };
 
+  const addUserMessage = (message: string) => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        sender: MessageSender.CLIENT,
+        content: message,
+      },
+    ]);
+  };
+
   return {
     messages,
     clearMessages: () => {
@@ -190,6 +203,7 @@ const useStreamingAvatarMessageState = () => {
     handleUserTalkingMessage,
     handleStreamingTalkingMessage,
     handleEndMessage,
+    addUserMessage,
   };
 };
 
