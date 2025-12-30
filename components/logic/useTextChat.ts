@@ -1,26 +1,43 @@
 import { TaskMode, TaskType } from "@heygen/streaming-avatar";
 import { useCallback } from "react";
 
-import { useStreamingAvatarContext } from "./context";
+import { useStreamingAvatarContext, MessageSender } from "./context";
 
 export const useTextChat = () => {
-  const { avatarRef } = useStreamingAvatarContext();
+  const { avatarRef, messages, handleUserTalkingMessage } = useStreamingAvatarContext();
 
   const sendMessage = useCallback(
     (message: string) => {
       if (!avatarRef.current) return;
+
+      // Add user message to history for text chat
+      const userMessage = {
+        detail: {
+          message: message
+        }
+      };
+      handleUserTalkingMessage(userMessage);
+
       avatarRef.current.speak({
         text: message,
         taskType: TaskType.TALK,
         taskMode: TaskMode.ASYNC,
       });
     },
-    [avatarRef],
+    [avatarRef, handleUserTalkingMessage],
   );
 
   const sendMessageSync = useCallback(
     async (message: string) => {
       if (!avatarRef.current) return;
+
+      // Add user message to history for text chat
+      const userMessage = {
+        detail: {
+          message: message
+        }
+      };
+      handleUserTalkingMessage(userMessage);
 
       return await avatarRef.current?.speak({
         text: message,
@@ -28,12 +45,20 @@ export const useTextChat = () => {
         taskMode: TaskMode.SYNC,
       });
     },
-    [avatarRef],
+    [avatarRef, handleUserTalkingMessage],
   );
 
   const repeatMessage = useCallback(
     (message: string) => {
       if (!avatarRef.current) return;
+
+      // Add user message to history for text chat
+      const userMessage = {
+        detail: {
+          message: message
+        }
+      };
+      handleUserTalkingMessage(userMessage);
 
       return avatarRef.current?.speak({
         text: message,
@@ -41,12 +66,20 @@ export const useTextChat = () => {
         taskMode: TaskMode.ASYNC,
       });
     },
-    [avatarRef],
+    [avatarRef, handleUserTalkingMessage],
   );
 
   const repeatMessageSync = useCallback(
     async (message: string) => {
       if (!avatarRef.current) return;
+
+      // Add user message to history for text chat
+      const userMessage = {
+        detail: {
+          message: message
+        }
+      };
+      handleUserTalkingMessage(userMessage);
 
       return await avatarRef.current?.speak({
         text: message,
@@ -54,7 +87,7 @@ export const useTextChat = () => {
         taskMode: TaskMode.SYNC,
       });
     },
-    [avatarRef],
+    [avatarRef, handleUserTalkingMessage],
   );
 
   return {

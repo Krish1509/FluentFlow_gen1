@@ -1,43 +1,227 @@
-# HeyGen Interactive Avatar NextJS Demo
+# 🚀 FluentFlow - AI Communication Coach
 
-![HeyGen Interactive Avatar NextJS Demo Screenshot](./public/demo.png)
+[![Next.js](https://img.shields.io/badge/Next.js-15.3.0-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0.4-blue)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.17-38B2AC)](https://tailwindcss.com/)
+[![HeyGen](https://img.shields.io/badge/HeyGen-AI_Avatars-FF6B35)](https://heygen.com/)
+[![Google Gemini](https://img.shields.io/badge/Google-Gemini_2.0-4285F4)](https://gemini.google.com/)
 
-This is a sample project and was bootstrapped using [NextJS](https://nextjs.org/).
-Feel free to play around with the existing code and please leave any feedback for the SDK [here](https://github.com/HeyGen-Official/StreamingAvatarSDK/discussions).
+<div align="center">
+  <img src="./public/demo.png" alt="FluentFlow Demo" width="800"/>
+  <p><em>Master communication skills with AI-powered avatars and real-time feedback</em></p>
+</div>
 
-## Getting Started FAQ
+## ✨ What is FluentFlow?
 
-### Setting up the demo
+**FluentFlow** is a revolutionary AI-powered communication coaching platform that combines cutting-edge streaming avatars with advanced conversational AI to help you master communication skills. Whether you're preparing for job interviews, practicing presentations, improving customer service skills, or simply building confidence in conversations, FluentFlow provides an immersive, interactive learning experience.
 
-1. Clone this repo
+### 🎯 Key Features
 
-2. Navigate to the repo folder in your terminal
+#### 🤖 Dual AI Interaction Modes
+- **Avatar Chat Mode**: Real-time video conversations with lifelike AI avatars
+- **Gemini Text Chat**: Intelligent text-based conversations with Google Gemini AI
 
-3. Run `npm install` (assuming you have npm installed. If not, please follow these instructions: https://docs.npmjs.com/downloading-and-installing-node-js-and-npm/)
+#### 🎭 Multiple Avatar Personalities
+- 👩‍⚕️ **Ann Therapist** - Professional counseling and coaching
+- 👨‍⚕️ **Shawn Therapist** - Supportive therapeutic guidance
+- 💪 **Bryan Fitness Coach** - Motivational coaching and encouragement
+- 👨‍⚕️ **Dexter Doctor** - Medical and professional expertise
+- 👩‍💻 **Elenora Tech Expert** - Technical and analytical discussions
 
-4. Enter your HeyGen Enterprise API Token in the `.env` file. Replace `HEYGEN_API_KEY` with your API key. This will allow the Client app to generate secure Access Tokens with which to create interactive sessions.
+#### 🌍 Multilingual Support
+- 🇺🇸 English (default)
+- 🇪🇸 Spanish
+- 🇫🇷 French
+- 🇩🇪 German
+- 🇨🇳 Chinese
+- 🇯🇵 Japanese
+- 🇰🇷 Korean
+- 🇮🇳 Hindi
 
-   You can retrieve either the API Key by logging in to HeyGen and navigating to this page in your settings: [https://app.heygen.com/settings?from=&nav=Subscriptions%20%26%20API]. 
+#### 🎨 Modern UI/UX
+- 🌙 **Dark/Light Mode** - Adaptive theme system
+- 📱 **Responsive Design** - Works on desktop, tablet, and mobile
+- ✨ **Smooth Animations** - Framer Motion powered interactions
+- 🎯 **Intuitive Controls** - Easy-to-use interface
 
-5. (Optional) If you would like to use the OpenAI features, enter your OpenAI Api Key in the `.env` file.
+#### 🔊 Voice & Video Features
+- 🎤 **Voice Recognition** - Real-time speech-to-text
+- 📹 **Video Streaming** - High-quality avatar video
+- 🔇 **Mute Controls** - Audio management
+- 📸 **Picture-in-Picture** - User video overlay
 
-6. Run `npm run dev`
+#### 💾 Smart Caching & Performance
+- ⚡ **Response Caching** - Faster subsequent interactions
+- 🔄 **Real-time Sync** - Live connection status
+- 📊 **Connection Quality** - Network performance monitoring
 
-### Starting sessions
+## 🚀 Quick Start
 
-NOTE: Make sure you have enter your token into the `.env` file and run `npm run dev`.
+### Prerequisites
 
-To start your 'session' with a Interactive Avatar, first click the 'start' button. If your HeyGen API key is entered into the Server's .env file, then you should see our demo Interactive Avatar appear.
+- **Node.js** 18+ ([Download here](https://nodejs.org/))
+- **npm** or **pnpm** package manager
+- **HeyGen API Key** ([Get one here](https://app.heygen.com/settings?from=&nav=Subscriptions%20%26%20API))
+- **Google Gemini API Key** (optional, [Get one here](https://aistudio.google.com/app/apikey))
 
-If you want to see a different Avatar or try a different voice, you can close the session and enter the IDs and then 'start' the session again. Please see below for information on where to retrieve different Avatar and voice IDs that you can use.
+### Installation
 
-### Which Avatars can I use with this project?
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/FluentFlow.git
+   cd FluentFlow
+   ```
 
-By default, there are several Public Avatars that can be used in Interactive Avatar. (AKA Interactive Avatars.) You can find the Avatar IDs for these Public Avatars by navigating to [labs.heygen.com/interactive-avatar](https://labs.heygen.com/interactive-avatar) and clicking 'Select Avatar' and copying the avatar id.
+2. **Install dependencies**
+   ```bash
+   npm install
+   # or
+   pnpm install
+   ```
 
-You can create your own custom Interactive Avatars at labs.heygen.com/interactive-avatar by clicking 'create interactive avatar' on the top-left of the screen.
+3. **Set up environment variables**
 
-### Where can I read more about enterprise-level usage of the Interactive Avatar API?
+   Create a `.env.local` file in the root directory:
+   ```env
+   # Required: HeyGen API Key for avatar functionality
+   HEYGEN_API_KEY=your_heygen_api_key_here
 
-Please read our Interactive Avatar 101 article for more information on pricing: https://help.heygen.com/en/articles/9182113-interactive-avatar-101-your-ultimate-guide
-# FluentFlow_gen1
+   # Optional: Google Gemini API for enhanced AI conversations
+   GOOGLE_GENERATIVE_API_KEY=your_gemini_api_key_here
+
+   # Optional: Base API URL (defaults to HeyGen production)
+   NEXT_PUBLIC_BASE_API_URL=https://api.heygen.com
+   ```
+
+4. **Start the development server**
+   ```bash
+   npm run dev
+   # or
+   pnpm dev
+   ```
+
+5. **Open your browser**
+
+   Navigate to [http://localhost:3000](http://localhost:3000) and start practicing!
+
+## 🎮 How to Use
+
+### Getting Started with Avatar Chat
+
+1. **Choose Your Mode**: Select "Live Call with Avatar" from the sidebar
+2. **Configure Avatar**: Pick your preferred avatar and language
+3. **Start Session**: Click "Start Session" to begin your conversation
+4. **Practice**: Use voice commands or text input to communicate
+5. **Monitor Performance**: Watch connection quality and interaction feedback
+
+### Text Chat Mode
+
+1. **Select Gemini Chat**: Choose "FluentFlow Chat" from the sidebar
+2. **Start Conversing**: Type your message and get instant AI responses
+3. **Explore Topics**: Practice various conversation scenarios
+
+### Voice Controls
+
+- 🎤 **Voice Recognition**: Click the microphone to start voice input
+- 🔇 **Mute/Unmute**: Control audio output with the volume button
+- 📹 **Video Toggle**: Show/hide your camera feed
+- 📱 **Mobile Mode**: Access all controls on mobile devices
+
+## 🛠️ Technology Stack
+
+### Frontend
+- **Next.js 15** - React framework with App Router
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first styling
+- **Framer Motion** - Smooth animations
+- **Radix UI** - Accessible UI components
+
+### AI & APIs
+- **HeyGen Streaming Avatars** - Lifelike AI video avatars
+- **Google Gemini 2.0** - Advanced conversational AI
+- **Web Speech API** - Voice recognition and synthesis
+
+### Development Tools
+- **ESLint** - Code linting
+- **Prettier** - Code formatting
+- **TypeScript** - Type checking
+
+## 🎯 Use Cases
+
+### 💼 Professional Development
+- **Job Interview Practice** - Prepare for interviews with realistic scenarios
+- **Presentation Skills** - Practice public speaking with immediate feedback
+- **Customer Service Training** - Role-play customer interactions
+
+### 🌍 Language Learning
+- **Accent Training** - Practice pronunciation with native speakers
+- **Vocabulary Building** - Contextual learning through conversations
+- **Cultural Communication** - Learn appropriate communication styles
+
+### 🧠 Personal Growth
+- **Confidence Building** - Practice social interactions safely
+- **Active Listening** - Improve communication skills
+- **Emotional Intelligence** - Learn empathetic communication
+
+## 🔮 Future Features (Roadmap)
+
+### 🚀 Planned Enhancements
+- **📊 Performance Analytics** - Detailed conversation analysis and improvement tracking
+- **🎬 Conversation Recording** - Save and review your practice sessions
+- **🏆 Achievement System** - Gamified learning with badges and milestones
+- **👥 Group Practice** - Collaborative learning sessions
+- **📚 Scenario Library** - Pre-built conversation scenarios
+- **🌐 Advanced Multilingual** - More languages and regional accents
+- **🔄 Offline Mode** - Practice without internet connection
+- **📈 Progress Tracking** - Long-term improvement monitoring
+
+### 🎨 UI/UX Improvements
+- **🎭 Custom Avatar Creation** - Design your own AI coaches
+- **📱 Enhanced Mobile Experience** - Native mobile app
+- **♿ Accessibility** - Full screen reader and keyboard navigation support
+- **🎨 Theme Customization** - Personalized color schemes and layouts
+
+## 🤝 Contributing
+
+We welcome contributions! Please feel free to:
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+### Development Guidelines
+- Follow TypeScript best practices
+- Write clear, concise commit messages
+- Add tests for new features
+- Update documentation as needed
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **HeyGen** for their incredible streaming avatar technology
+- **Google** for the powerful Gemini AI models
+- **Vercel** for hosting and deployment infrastructure
+- **Open source community** for amazing tools and libraries
+
+## 📞 Support
+
+- 📧 **Email**: support@fluentflow.ai
+- 💬 **Discord**: [Join our community](https://discord.gg/fluentflow)
+- 📖 **Documentation**: [Full docs](https://docs.fluentflow.ai)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/your-username/FluentFlow/issues)
+
+---
+
+<div align="center">
+  <p><strong>Built with ❤️ for better communication worldwide</strong></p>
+  <p>
+    <a href="#-fluentflow---ai-communication-coach">Back to Top</a> •
+    <a href="https://fluentflow.ai">Website</a> •
+    <a href="https://demo.fluentflow.ai">Live Demo</a>
+  </p>
+</div>

@@ -2,14 +2,74 @@ import { NextRequest, NextResponse } from "next/server";
 
 type GenerateBody = {
   text?: string;
+  userProfile?: any;
+  scenario?: any;
 };
 
-// Simple in-memory cache to reduce API calls
-const responseCache = new Map<string, { response: string; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+// Enhanced in-memory cache to reduce API calls
+const responseCache = new Map<string, { response: string; timestamp: number; userProfile?: any; scenario?: any }>();
+const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes - increased for development
 
-function buildTutorPrompt(userInput: string): string {
-  return "You are a helpful AI assistant. Respond in a friendly, clear, and concise way. Keep responses natural and conversational. Do not include any promotional text, download instructions, or phone-related content. Just answer the user's question directly. User said: '" + userInput + "'";
+function buildTutorPrompt(userInput: string, userProfile?: any): string {
+  let systemPrompt = "You are FluentFlow, an AI communication coach. ";
+
+  if (userProfile) {
+    systemPrompt += `You are speaking with ${userProfile.name || 'the user'}. `;
+
+    if (userProfile.age) {
+      systemPrompt += `They are ${userProfile.age} years old. `;
+    }
+
+    if (userProfile.occupation) {
+      systemPrompt += `Their occupation/role is: ${userProfile.occupation}. `;
+    }
+
+    if (userProfile.nativeLanguage) {
+      systemPrompt += `Their native language is ${userProfile.nativeLanguage}. `;
+    }
+
+    if (userProfile.currentLanguages?.length > 0) {
+      systemPrompt += `They know these languages: ${userProfile.currentLanguages.join(', ')}. `;
+    }
+
+    if (userProfile.targetLanguages?.length > 0) {
+      systemPrompt += `They are learning/practicing: ${userProfile.targetLanguages.join(', ')}. `;
+    }
+
+    if (userProfile.proficiencyLevel) {
+      systemPrompt += `Their current proficiency level is ${userProfile.proficiencyLevel}. `;
+    }
+
+    if (userProfile.learningGoals?.length > 0) {
+      systemPrompt += `Their learning goals include: ${userProfile.learningGoals.join(', ')}. `;
+    }
+
+    if (userProfile.interests?.length > 0) {
+      systemPrompt += `Their interests include: ${userProfile.interests.join(', ')}. `;
+    }
+
+    if (userProfile.personalityTraits?.length > 0) {
+      systemPrompt += `Their personality traits: ${userProfile.personalityTraits.join(', ')}. `;
+    }
+
+    if (userProfile.communicationStyle) {
+      systemPrompt += `Adapt your communication style to be ${userProfile.communicationStyle.toLowerCase()}. `;
+    }
+
+    if (userProfile.challenges?.length > 0) {
+      systemPrompt += `Help them with these challenges: ${userProfile.challenges.join(', ')}. `;
+    }
+  }
+
+  systemPrompt += "Respond in a friendly, clear, and concise way. Keep responses natural and conversational. ";
+
+  if (userProfile?.name) {
+    systemPrompt += `Address them by name (${userProfile.name}) when appropriate. `;
+  }
+
+  systemPrompt += "Focus on communication practice and improvement. Do not include any promotional text, download instructions, or phone-related content. Just engage in the conversation naturally. ";
+
+  return systemPrompt + "User said: '" + userInput + "'";
 }
 
 export async function POST(request: NextRequest) {
@@ -27,18 +87,22 @@ export async function POST(request: NextRequest) {
 
     const body = (await request.json()) as GenerateBody;
     const userText = body?.text?.trim();
+    const userProfile = body?.userProfile;
+    const scenario = body?.scenario;
+
     if (!userText) {
       return NextResponse.json({ error: "Missing 'text'" }, { status: 400 });
     }
 
-    // Check cache first to reduce API calls
-    const cacheKey = userText.toLowerCase();
+    // Check cache first to reduce API calls - include personalization in cache key
+    const cacheKey = `${userText.toLowerCase()}_${JSON.stringify(userProfile || {})}_${JSON.stringify(scenario || {})}`;
     const cached = responseCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      console.log('📋 Using cached response for:', userText.substring(0, 50) + '...');
       return NextResponse.json({ reply: cached.response });
     }
 
-    const promptPayload = buildTutorPrompt(userText);
+    const promptPayload = buildTutorPrompt(userText, userProfile);
 
     // Gemini via Generative Language API: text-only generation endpoint
     // Using working model from available models list
@@ -105,8 +169,22 @@ export async function POST(request: NextRequest) {
     // Cache the response to reduce future API calls
     responseCache.set(cacheKey, {
       response: candidateText,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      userProfile: userProfile,
+      scenario: scenario
     });
+
+    // Clean up old cache entries periodically
+    if (responseCache.size > 100) {
+      const now = Date.now();
+      const keysToDelete: string[] = [];
+      responseCache.forEach((value, key) => {
+        if (now - value.timestamp > CACHE_DURATION) {
+          keysToDelete.push(key);
+        }
+      });
+      keysToDelete.forEach(key => responseCache.delete(key));
+    }
 
     return NextResponse.json({ reply: candidateText });
   } catch (error: unknown) {

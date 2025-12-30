@@ -16,9 +16,25 @@ export async function POST() {
 
     console.log("Response:", res);
 
-    const data = await res.json();
+    if (!res.ok) {
+      console.error("HeyGen API error:", res.status, res.statusText);
+      const errorText = await res.text();
+      console.error("Error details:", errorText);
+      throw new Error(`HeyGen API returned ${res.status}: ${errorText}`);
+    }
 
-    return new Response(data.data.token, {
+    const data = await res.json();
+    console.log("Token response data:", data);
+
+    // Handle different response formats
+    const token = data.token || data.data?.token || data.access_token;
+
+    if (!token) {
+      console.error("No token found in response:", data);
+      throw new Error("Invalid token response from HeyGen API");
+    }
+
+    return new Response(token, {
       status: 200,
     });
   } catch (error) {

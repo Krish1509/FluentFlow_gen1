@@ -54,37 +54,34 @@ export const TextInput: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleSend]);
 
-  const previousText = usePrevious(message);
-
-  useEffect(() => {
-    if (!previousText && message) {
-      startListening();
-    } else if (previousText && !message) {
-      stopListening();
-    }
-  }, [message, previousText, startListening, stopListening]);
+  // Note: Removed automatic listening on text input to prevent voice recognition interference
+  // Voice listening should only be controlled by the voice/text toggle
 
   return (
     <div className="bg-gray-100/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-gray-700/50">
-      {/* TALK / ASYNC Dropdowns */}
+      {/* Task Type / Mode Dropdowns */}
       <div className="flex gap-3 mb-4">
         <div className="flex-1">
-          <label className="block text-xs text-purple-600 dark:text-purple-400 mb-2 font-medium">TALK</label>
+          <label className="block text-xs text-purple-600 dark:text-purple-400 mb-2 font-medium">
+            Task Type
+          </label>
           <Select
             isSelected={(option) => option === taskType}
             options={Object.values(TaskType)}
-            renderOption={(option) => option.toUpperCase()}
-            value={taskType.toUpperCase()}
+            renderOption={(option) => option === TaskType.TALK ? "RESPOND" : "REPEAT"}
+            value={taskType === TaskType.TALK ? "RESPOND" : "REPEAT"}
             onSelect={setTaskType}
           />
         </div>
         <div className="flex-1">
-          <label className="block text-xs text-purple-600 dark:text-purple-400 mb-2 font-medium">ASYNC</label>
+          <label className="block text-xs text-purple-600 dark:text-purple-400 mb-2 font-medium">
+            Response Mode
+          </label>
           <Select
             isSelected={(option) => option === taskMode}
             options={Object.values(TaskMode)}
-            renderOption={(option) => option.toUpperCase()}
-            value={taskMode.toUpperCase()}
+            renderOption={(option) => option === TaskMode.SYNC ? "WAIT" : "CONTINUOUS"}
+            value={taskMode === TaskMode.SYNC ? "WAIT" : "CONTINUOUS"}
             onSelect={setTaskMode}
           />
         </div>
@@ -94,7 +91,7 @@ export const TextInput: React.FC = () => {
       <div className="flex gap-3 items-center">
         <Input
           className="flex-1"
-          placeholder={`Type something for the avatar to ${taskType === TaskType.REPEAT ? "repeat" : "respond"}...`}
+          placeholder={`Type something for the avatar to ${taskType === TaskType.REPEAT ? "repeat" : "respond to"}...`}
           value={message}
           onChange={setMessage}
         />
