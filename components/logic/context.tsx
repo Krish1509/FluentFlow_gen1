@@ -53,6 +53,9 @@ type StreamingAvatarContextProps = {
 
   connectionQuality: ConnectionQuality;
   setConnectionQuality: (connectionQuality: ConnectionQuality) => void;
+
+  userProfile?: any;
+  selectedScenario?: any;
 };
 
 const StreamingAvatarContext = React.createContext<StreamingAvatarContextProps>(
@@ -82,6 +85,8 @@ const StreamingAvatarContext = React.createContext<StreamingAvatarContextProps>(
     setIsAvatarTalking: () => {},
     connectionQuality: ConnectionQuality.UNKNOWN,
     setConnectionQuality: () => {},
+    userProfile: null,
+    selectedScenario: null,
   },
 );
 
@@ -102,7 +107,7 @@ const useStreamingAvatarSessionState = () => {
 const useStreamingAvatarVoiceChatState = () => {
   const [isMuted, setIsMuted] = useState(true);
   const [isVoiceChatLoading, setIsVoiceChatLoading] = useState(false);
-  const [isVoiceChatActive, setIsVoiceChatActive] = useState(false);
+  const [isVoiceChatActive, setIsVoiceChatActive] = useState(true);
 
   return {
     isMuted,
@@ -119,14 +124,30 @@ const useStreamingAvatarMessageState = () => {
   const currentSenderRef = useRef<MessageSender | null>(null);
 
   const handleUserTalkingMessage = (event: any) => {
+    if (!event || typeof event.text !== "string") return;
+    const text = event.text;
+    if (!text) return;
+
     if (currentSenderRef.current === MessageSender.CLIENT) {
-      setMessages((prev) => [
-        ...prev.slice(0, -1),
-        {
-          ...prev[prev.length - 1],
-          content: [prev[prev.length - 1].content, event.text].join(""),
-        },
-      ]);
+      setMessages((prev) => {
+        if (prev.length === 0) return prev;
+        const lastMsg = prev[prev.length - 1];
+        const oldText = lastMsg.content;
+
+        let newContent = text;
+        if (oldText && !text.startsWith(oldText) && !oldText.startsWith(text)) {
+          const separator = oldText.endsWith(" ") || text.startsWith(" ") ? "" : " ";
+          newContent = `${oldText}${separator}${text}`;
+        }
+
+        return [
+          ...prev.slice(0, -1),
+          {
+            ...lastMsg,
+            content: newContent,
+          },
+        ];
+      });
     } else {
       currentSenderRef.current = MessageSender.CLIENT;
       setMessages((prev) => [
@@ -134,21 +155,37 @@ const useStreamingAvatarMessageState = () => {
         {
           id: Date.now().toString(),
           sender: MessageSender.CLIENT,
-          content: event.text,
+          content: text,
         },
       ]);
     }
   };
 
   const handleStreamingTalkingMessage = (event: any) => {
+    if (!event || typeof event.text !== "string") return;
+    const text = event.text;
+    if (!text) return;
+
     if (currentSenderRef.current === MessageSender.AVATAR) {
-      setMessages((prev) => [
-        ...prev.slice(0, -1),
-        {
-          ...prev[prev.length - 1],
-          content: [prev[prev.length - 1].content, event.text].join(""),
-        },
-      ]);
+      setMessages((prev) => {
+        if (prev.length === 0) return prev;
+        const lastMsg = prev[prev.length - 1];
+        const oldText = lastMsg.content;
+
+        let newContent = text;
+        if (oldText && !text.startsWith(oldText) && !oldText.startsWith(text)) {
+          const separator = oldText.endsWith(" ") || text.startsWith(" ") ? "" : " ";
+          newContent = `${oldText}${separator}${text}`;
+        }
+
+        return [
+          ...prev.slice(0, -1),
+          {
+            ...lastMsg,
+            content: newContent,
+          },
+        ];
+      });
     } else {
       currentSenderRef.current = MessageSender.AVATAR;
       setMessages((prev) => [
@@ -156,7 +193,7 @@ const useStreamingAvatarMessageState = () => {
         {
           id: Date.now().toString(),
           sender: MessageSender.AVATAR,
-          content: event.text,
+          content: text,
         },
       ]);
     }
@@ -219,9 +256,13 @@ const useStreamingAvatarConnectionQualityState = () => {
 export const StreamingAvatarProvider = ({
   children,
   basePath,
+  userProfile,
+  selectedScenario,
 }: {
   children: React.ReactNode;
   basePath?: string;
+  userProfile?: any;
+  selectedScenario?: any;
 }) => {
   const avatarRef = React.useRef<LiveAvatarSession>(null);
   const voiceChatState = useStreamingAvatarVoiceChatState();
@@ -236,6 +277,8 @@ export const StreamingAvatarProvider = ({
       value={{
         avatarRef,
         basePath,
+        userProfile,
+        selectedScenario,
         ...voiceChatState,
         ...sessionState,
         ...messageState,

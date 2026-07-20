@@ -30,6 +30,9 @@ export const useStreamingAvatarSession = () => {
     handleStreamingTalkingMessage,
     handleEndMessage,
     clearMessages,
+    messages,
+    userProfile,
+    selectedScenario,
   } = useStreamingAvatarContext();
   const { stopVoiceChat } = useVoiceChat();
 
@@ -72,32 +75,103 @@ export const useStreamingAvatarSession = () => {
     setIsAvatarTalking(false);
   }, [setIsAvatarTalking]);
 
+  const handleUserTranscriptionFinal = useCallback(
+    async (event: any) => {
+      handleUserTalkingMessage(event);
+      handleEndMessage();
+
+      if (!event || typeof event.text !== "string") return;
+      const text = event.text.trim();
+      if (!text) return;
+
+      console.log("[Voice Interaction] User speech final transcript:", text);
+
+      // Construct conversation history prior to adding the new message to avoid state update delays
+      const history = messages.map((msg) => ({
+        role: msg.sender === "CLIENT" ? "user" : "assistant",
+        content: msg.content,
+      }));
+
+      try {
+        console.log("[Voice Interaction] Requesting response from Gemini for voice...");
+        const res = await fetch("/api/gemini", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text,
+            userProfile,
+            scenario: selectedScenario || null,
+            history,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Request failed");
+        
+        console.log("[Voice Interaction] Received Gemini response:", data.reply);
+        
+        // Add AI reply to message history
+        handleStreamingTalkingMessage({ text: data.reply });
+        handleEndMessage();
+
+        if (avatarRef.current) {
+          avatarRef.current.repeat(data.reply);
+        }
+      } catch (error) {
+        console.error("[Voice Interaction] Gemini response error:", error);
+      }
+    },
+    [
+      handleUserTalkingMessage,
+      handleStreamingTalkingMessage,
+      handleEndMessage,
+      messages,
+      userProfile,
+      selectedScenario,
+      avatarRef
+    ],
+  );
+
+  const handleAvatarTranscriptionFinal = useCallback(
+    (event: any) => {
+      handleStreamingTalkingMessage(event);
+      handleEndMessage();
+    },
+    [handleStreamingTalkingMessage, handleEndMessage],
+  );
+
   const stop = useCallback(async () => {
     if (avatarRef.current) {
-      avatarRef.current.off(SessionEvent.SESSION_STREAM_READY, handleStream);
-      avatarRef.current.off(SessionEvent.SESSION_DISCONNECTED, stop);
-      avatarRef.current.off(
-        SessionEvent.SESSION_CONNECTION_QUALITY_CHANGED,
-        handleConnectionQuality,
-      );
-      avatarRef.current.off(AgentEventsEnum.USER_SPEAK_STARTED, handleUserSpeakStarted);
-      avatarRef.current.off(AgentEventsEnum.USER_SPEAK_ENDED, handleUserSpeakEnded);
-      avatarRef.current.off(AgentEventsEnum.AVATAR_SPEAK_STARTED, handleAvatarSpeakStarted);
-      avatarRef.current.off(AgentEventsEnum.AVATAR_SPEAK_ENDED, handleAvatarSpeakEnded);
-      avatarRef.current.off(
-        AgentEventsEnum.USER_TRANSCRIPTION_CHUNK,
-        handleUserTalkingMessage,
-      );
-      avatarRef.current.off(
-        AgentEventsEnum.AVATAR_TRANSCRIPTION_CHUNK,
-        handleStreamingTalkingMessage,
-      );
-      avatarRef.current.off(AgentEventsEnum.USER_TRANSCRIPTION, handleEndMessage);
-      avatarRef.current.off(
-        AgentEventsEnum.AVATAR_TRANSCRIPTION,
-        handleEndMessage,
-      );
-      await avatarRef.current.stop();
+      if (typeof avatarRef.current.off === 'function') {
+        avatarRef.current.off(SessionEvent.SESSION_STREAM_READY, handleStream);
+        avatarRef.current.off(SessionEvent.SESSION_DISCONNECTED, stop);
+        avatarRef.current.off(
+          SessionEvent.SESSION_CONNECTION_QUALITY_CHANGED,
+          handleConnectionQuality,
+        );
+        avatarRef.current.off(AgentEventsEnum.USER_SPEAK_STARTED, handleUserSpeakStarted);
+        avatarRef.current.off(AgentEventsEnum.USER_SPEAK_ENDED, handleUserSpeakEnded);
+        avatarRef.current.off(AgentEventsEnum.AVATAR_SPEAK_STARTED, handleAvatarSpeakStarted);
+        avatarRef.current.off(AgentEventsEnum.AVATAR_SPEAK_ENDED, handleAvatarSpeakEnded);
+        avatarRef.current.off(
+          AgentEventsEnum.USER_TRANSCRIPTION_CHUNK,
+          handleUserTalkingMessage,
+        );
+        avatarRef.current.off(
+          AgentEventsEnum.AVATAR_TRANSCRIPTION_CHUNK,
+          handleStreamingTalkingMessage,
+        );
+        avatarRef.current.off(
+          AgentEventsEnum.USER_TRANSCRIPTION,
+          handleUserTranscriptionFinal,
+        );
+        avatarRef.current.off(
+          AgentEventsEnum.AVATAR_TRANSCRIPTION,
+          handleAvatarTranscriptionFinal,
+        );
+      }
+      if (typeof avatarRef.current.stop === 'function') {
+        await avatarRef.current.stop();
+      }
       avatarRef.current = null;
     }
     clearMessages();
@@ -125,6 +199,8 @@ export const useStreamingAvatarSession = () => {
     handleUserTalkingMessage,
     handleStreamingTalkingMessage,
     handleEndMessage,
+    handleUserTranscriptionFinal,
+    handleAvatarTranscriptionFinal,
   ]);
 
   const start = useCallback(
@@ -163,10 +239,13 @@ export const useStreamingAvatarSession = () => {
         AgentEventsEnum.AVATAR_TRANSCRIPTION_CHUNK,
         handleStreamingTalkingMessage,
       );
-      avatarRef.current.on(AgentEventsEnum.USER_TRANSCRIPTION, handleEndMessage);
+      avatarRef.current.on(
+        AgentEventsEnum.USER_TRANSCRIPTION,
+        handleUserTranscriptionFinal,
+      );
       avatarRef.current.on(
         AgentEventsEnum.AVATAR_TRANSCRIPTION,
-        handleEndMessage,
+        handleAvatarTranscriptionFinal,
       );
 
       await avatarRef.current.start();

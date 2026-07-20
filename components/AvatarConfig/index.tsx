@@ -108,15 +108,6 @@ export const AvatarConfig: React.FC<AvatarConfigProps> = ({
           onSelect={(option) => onChange("language", option.value)}
         />
       </Field>
-      <Field label="Avatar Quality">
-        <Select
-          isSelected={(option) => option === config.quality}
-          options={Object.values(AvatarQuality)}
-          renderOption={(option) => option}
-          value={config.quality}
-          onSelect={(option) => onChange("quality", option)}
-        />
-      </Field>
       <Field label="Voice Chat Transport">
         <Select
           isSelected={(option) => option === config.voiceChatTransport}

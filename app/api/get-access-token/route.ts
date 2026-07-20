@@ -84,9 +84,16 @@ export async function POST(req: NextRequest) {
         voice_settings: config.voice ? {
           model: config.voice.model
         } : undefined,
-        stt_config: config.sttSettings ? {
-          provider: config.sttSettings.provider
-        } : undefined
+        stt_config: {
+          provider: config.sttSettings?.provider || "deepgram",
+          language: config.language === "en" ? "en-US" : 
+                    config.language === "es" ? "es-ES" :
+                    config.language === "fr" ? "fr-FR" :
+                    config.language === "de" ? "de-DE" :
+                    config.language === "zh" ? "zh-CN" :
+                    config.language === "ja" ? "ja-JP" :
+                    config.language === "hi" ? "hi-IN" : "en-US"
+        }
       },
       mode: "FULL",
       video_settings: {

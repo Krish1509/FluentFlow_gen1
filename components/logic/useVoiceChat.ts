@@ -44,7 +44,9 @@ export const useVoiceChat = () => {
 
   const stopVoiceChat = useCallback(() => {
     if (!avatarRef.current) return;
-    avatarRef.current.voiceChat.stop();
+    if (typeof avatarRef.current.voiceChat?.stop === 'function') {
+      avatarRef.current.voiceChat.stop();
+    }
     setIsVoiceChatActive(false);
     setIsMuted(true);
   }, [avatarRef, setIsMuted, setIsVoiceChatActive]);

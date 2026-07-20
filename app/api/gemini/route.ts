@@ -4,189 +4,193 @@ type GenerateBody = {
   text?: string;
   userProfile?: any;
   scenario?: any;
+  language?: string;
 };
 
-// Enhanced in-memory cache to reduce API calls
-const responseCache = new Map<string, { response: string; timestamp: number; userProfile?: any; scenario?: any }>();
-const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes - increased for development
+// In-memory cache to reduce redundant API calls
+const responseCache = new Map<string, { response: string; timestamp: number }>();
+const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
-function buildTutorPrompt(userInput: string, userProfile?: any): string {
-  let systemPrompt = "You are FluentFlow, an AI communication coach. ";
+function buildSystemPrompt(userProfile?: any, scenario?: any, language?: string): string {
+  let systemPrompt = "You are FluentFlow, an empathetic and professional AI communication and language coach. CRITICAL VOICE CALL MODE: You are interacting via a REAL-TIME SPOKEN VOICE CALL with the user. The user is SPEAKING out loud into their microphone. You can HEAR them clearly. NEVER say things like 'I can understand what you're typing', 'I see what you wrote', or refer to text/typing. Speak naturally as a real human spoken partner over a live video/audio call. ";
+
+  if (language && language !== "en") {
+    const langMap: Record<string, string> = {
+      hi: "Hindi",
+      "hi-IN": "Hindi",
+      es: "Spanish",
+      "es-ES": "Spanish",
+      fr: "French",
+      "fr-FR": "French",
+      de: "German",
+      "de-DE": "German",
+      zh: "Chinese",
+      "zh-CN": "Chinese",
+      ja: "Japanese",
+      "ja-JP": "Japanese"
+    };
+    const langName = langMap[language] || language;
+    systemPrompt += `CRITICAL LANGUAGE REQUIREMENT: The user has selected ${langName} (${language}). You MUST speak, respond, and conduct the entire conversation in ${langName}. Do NOT use English unless translating or explaining a word upon request. `;
+  }
+
+  if (scenario) {
+    systemPrompt += `Current Scenario/Roleplay: ${scenario.name}. Description: ${scenario.description}. `;
+    
+    const isInterview = scenario.name?.toLowerCase().includes("interview") || 
+                        scenario.id?.toLowerCase().includes("interview") ||
+                        scenario.name?.toLowerCase().includes("practice") ||
+                        scenario.id?.toLowerCase().includes("practice");
+                        
+    if (isInterview) {
+      systemPrompt += `Roleplay Instruction: You are the interviewer/coach conducting a professional one-by-one practice interview. Ask exactly ONE interview question or follow-up question at a time. Wait for the user to respond before asking the next question. Provide very brief, actionable feedback (under 1 sentence) on their communication if necessary, then proceed to the next question. Do NOT list multiple questions at once. `;
+    } else {
+      systemPrompt += `Roleplay Instruction: Actively play your role in this scenario. Respond in character according to the scenario description. Keep the interaction flow natural, and reply with one conversational turn at a time. `;
+    }
+  } else {
+    systemPrompt += "We are doing a General Conversation practice. Act as a friendly, engaging, and supportive language partner. Keep the conversation open-ended, ask engaging questions, and help the user express themselves. ";
+  }
 
   if (userProfile) {
-    systemPrompt += `You are speaking with ${userProfile.name || 'the user'}. `;
-
-    if (userProfile.age) {
-      systemPrompt += `They are ${userProfile.age} years old. `;
-    }
-
-    if (userProfile.occupation) {
-      systemPrompt += `Their occupation/role is: ${userProfile.occupation}. `;
-    }
-
-    if (userProfile.nativeLanguage) {
-      systemPrompt += `Their native language is ${userProfile.nativeLanguage}. `;
-    }
-
-    if (userProfile.currentLanguages?.length > 0) {
-      systemPrompt += `They know these languages: ${userProfile.currentLanguages.join(', ')}. `;
-    }
-
-    if (userProfile.targetLanguages?.length > 0) {
-      systemPrompt += `They are learning/practicing: ${userProfile.targetLanguages.join(', ')}. `;
-    }
-
-    if (userProfile.proficiencyLevel) {
-      systemPrompt += `Their current proficiency level is ${userProfile.proficiencyLevel}. `;
-    }
-
-    if (userProfile.learningGoals?.length > 0) {
-      systemPrompt += `Their learning goals include: ${userProfile.learningGoals.join(', ')}. `;
-    }
-
-    if (userProfile.interests?.length > 0) {
-      systemPrompt += `Their interests include: ${userProfile.interests.join(', ')}. `;
-    }
-
-    if (userProfile.personalityTraits?.length > 0) {
-      systemPrompt += `Their personality traits: ${userProfile.personalityTraits.join(', ')}. `;
-    }
-
-    if (userProfile.communicationStyle) {
-      systemPrompt += `Adapt your communication style to be ${userProfile.communicationStyle.toLowerCase()}. `;
-    }
-
-    if (userProfile.challenges?.length > 0) {
-      systemPrompt += `Help them with these challenges: ${userProfile.challenges.join(', ')}. `;
-    }
+    if (userProfile.name) systemPrompt += `User's name: ${userProfile.name}. `;
+    if (userProfile.age) systemPrompt += `Age: ${userProfile.age}. `;
+    if (userProfile.occupation) systemPrompt += `Occupation/Role: ${userProfile.occupation}. `;
+    if (userProfile.nativeLanguage) systemPrompt += `Native language: ${userProfile.nativeLanguage}. `;
+    if (userProfile.targetLanguages?.length > 0) systemPrompt += `Practicing: ${userProfile.targetLanguages.join(', ')}. `;
+    if (userProfile.proficiencyLevel) systemPrompt += `Proficiency level: ${userProfile.proficiencyLevel}. `;
+    if (userProfile.learningGoals?.length > 0) systemPrompt += `Goals: ${userProfile.learningGoals.join(', ')}. `;
+    if (userProfile.interests?.length > 0) systemPrompt += `Interests: ${userProfile.interests.join(', ')}. `;
+    if (userProfile.communicationStyle) systemPrompt += `Style: ${userProfile.communicationStyle}. `;
   }
 
-  systemPrompt += "Respond in a friendly, clear, and concise way. Keep responses natural and conversational. ";
+  systemPrompt += "CRITICAL STT INSTRUCTION: The user is speaking live via speech recognition. STT may occasionally output minor phonetic misreadings. NEVER mention, repeat, or question weird STT misheard words like 'fresh', 'chris', 'frame', or 'fish'. ALWAYS respond naturally with a warm greeting or answer their core intent directly in 1-2 concise sentences.";
 
-  if (userProfile?.name) {
-    systemPrompt += `Address them by name (${userProfile.name}) when appropriate. `;
-  }
-
-  systemPrompt += "Focus on communication practice and improvement. Do not include any promotional text, download instructions, or phone-related content. Just engage in the conversation naturally. ";
-
-  return systemPrompt + "User said: '" + userInput + "'";
+  return systemPrompt;
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = process.env.GOOGLE_GENERATIVE_API_KEY;
-    if (!apiKey || apiKey === "your_google_gemini_api_key_here" || apiKey === "AIzaSyDummyKeyPleaseReplaceWithRealKey") {
+    const groqApiKey = process.env.GROQ_API_KEY;
+    const geminiApiKey = process.env.GOOGLE_GENERATIVE_API_KEY;
+
+    if (!groqApiKey && (!geminiApiKey || geminiApiKey.includes("your_google_gemini_api_key"))) {
       return NextResponse.json(
-        { 
-          error: "Please set up your Google Gemini API key",
-          instructions: "1. Go to https://aistudio.google.com/app/apikey\n2. Create an API key\n3. Add it to .env.local as GOOGLE_GENERATIVE_API_KEY=your_actual_key"
+        {
+          error: "Please set GROQ_API_KEY or GOOGLE_GENERATIVE_API_KEY in .env",
         },
         { status: 500 }
       );
     }
 
-    const body = (await request.json()) as GenerateBody;
-    const userText = body?.text?.trim();
+    const body = (await request.json()) as any;
+    let userText = body?.text?.trim() || "";
     const userProfile = body?.userProfile;
     const scenario = body?.scenario;
+    const language = body?.language;
+    const history = body?.history || [];
 
     if (!userText) {
       return NextResponse.json({ error: "Missing 'text'" }, { status: 400 });
     }
 
-    // Check cache first to reduce API calls - include personalization in cache key
-    const cacheKey = `${userText.toLowerCase()}_${JSON.stringify(userProfile || {})}_${JSON.stringify(scenario || {})}`;
+    // Clean common Speech Recognition (STT) phonetic mishearings
+    const cleanLower = userText.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
+    if (
+      cleanLower === "hello fresh" ||
+      cleanLower === "hello chris" ||
+      cleanLower === "hello frame" ||
+      cleanLower === "hello fish" ||
+      cleanLower === "hello coach"
+    ) {
+      userText = "Hello";
+    }
+
+    // Cache check includes history and language to ensure uniqueness
+    const cacheKey = `${userText.toLowerCase()}_${JSON.stringify(userProfile || {})}_${JSON.stringify(scenario || {})}_${language}_${JSON.stringify(history)}`;
     const cached = responseCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      console.log('📋 Using cached response for:', userText.substring(0, 50) + '...');
+      console.log("📋 Using cached response for user text");
       return NextResponse.json({ reply: cached.response });
     }
 
-    const promptPayload = buildTutorPrompt(userText, userProfile);
+    const systemPrompt = buildSystemPrompt(userProfile, scenario, language);
+    let replyText = "";
 
-    // Gemini via Generative Language API: text-only generation endpoint
-    // Using working model from available models list
-    const model = "gemini-flash-latest";
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-    const upstream = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                text: promptPayload,
-              },
+    // 1. Try Groq API if key is available (Llama 3.3 70B - fast & high accuracy)
+    if (groqApiKey) {
+      try {
+        console.log("⚡ Calling Groq API with model llama-3.3-70b-versatile...");
+        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${groqApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "llama-3.3-70b-versatile",
+            messages: [
+              { role: "system", content: systemPrompt },
+              ...history,
+              { role: "user", content: userText },
             ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 1024,
-        },
-      }),
-    });
+            temperature: 0.6,
+            max_tokens: 120,
+          }),
+        });
 
-    if (!upstream.ok) {
-      const errText = await upstream.text();
-      console.error("Gemini API error:", upstream.status, errText);
-      
-      // Handle specific API key errors
-      if (upstream.status === 400 && errText.includes("API key not valid")) {
-        return NextResponse.json(
-          { 
-            error: "Invalid Google Gemini API key",
-            instructions: "Please check your API key at https://aistudio.google.com/app/apikey and update .env.local"
-          },
-          { status: 401 }
-        );
-      }
-      
-      return NextResponse.json(
-        { error: "Gemini API error", detail: errText, status: upstream.status },
-        { status: 502 }
-      );
-    }
-
-    const data = (await upstream.json()) as {
-      candidates?: Array<{
-        content?: {
-          parts?: Array<{
-            text?: string;
-          }>;
-        };
-      }>;
-    };
-    const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-
-    // Cache the response to reduce future API calls
-    responseCache.set(cacheKey, {
-      response: candidateText,
-      timestamp: Date.now(),
-      userProfile: userProfile,
-      scenario: scenario
-    });
-
-    // Clean up old cache entries periodically
-    if (responseCache.size > 100) {
-      const now = Date.now();
-      const keysToDelete: string[] = [];
-      responseCache.forEach((value, key) => {
-        if (now - value.timestamp > CACHE_DURATION) {
-          keysToDelete.push(key);
+        if (groqRes.ok) {
+          const groqData = await groqRes.json();
+          replyText = groqData?.choices?.[0]?.message?.content ?? "";
+          console.log("✅ Groq API response received successfully!");
+        } else {
+          const errText = await groqRes.text();
+          console.warn("Groq API status error:", groqRes.status, errText);
         }
-      });
-      keysToDelete.forEach(key => responseCache.delete(key));
+      } catch (groqErr) {
+        console.error("Groq API request error:", groqErr);
+      }
     }
 
-    return NextResponse.json({ reply: candidateText });
+    // 2. Fallback to Gemini if Groq is unavailable or failed
+    if (!replyText && geminiApiKey) {
+      console.log("🤖 Falling back to Gemini API...");
+      const model = "gemini-flash-latest";
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`;
+
+      const geminiRes = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            ...history.map((h: any) => ({
+              role: h.role === "assistant" ? "model" : "user",
+              parts: [{ text: h.content }],
+            })),
+            {
+              role: "user",
+              parts: [{ text: `${systemPrompt}\nUser said: '${userText}'` }],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1024,
+          },
+        }),
+      });
+
+      if (geminiRes.ok) {
+        const geminiData = await geminiRes.json();
+        replyText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+      }
+    }
+
+    if (!replyText) {
+      return NextResponse.json({ error: "Failed to generate response from AI providers" }, { status: 502 });
+    }
+
+    // Save response to cache
+    responseCache.set(cacheKey, { response: replyText, timestamp: Date.now() });
+
+    return NextResponse.json({ reply: replyText });
   } catch (error: unknown) {
     return NextResponse.json(
       { error: "Request failed", detail: String(error) },

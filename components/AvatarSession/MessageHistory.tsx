@@ -18,7 +18,7 @@ export const MessageHistory: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="w-full overflow-y-auto flex flex-col gap-3 px-4 py-4 text-gray-900 dark:text-white max-h-[200px] custom-scrollbar"
+      className="w-full overflow-y-auto flex-1 flex flex-col gap-3 px-4 py-4 text-gray-900 dark:text-white custom-scrollbar"
     >
       <AnimatePresence>
         {messages.map((message, index) => (
