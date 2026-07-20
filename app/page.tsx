@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -7,6 +8,19 @@ import { ArrowRight, Sparkles, MessageSquare, Zap, Globe, CheckCircle2, Shield, 
 import liveCallImage from "@/images/image.png";
 
 export default function LandingPage() {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
   return (
     <div className="min-h-screen bg-black relative selection:bg-purple-500/30">
       {/* Background Effects */}
@@ -17,33 +31,39 @@ export default function LandingPage() {
       </div>
       <div className="animated-lines" />
 
-      <nav className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 max-w-7xl mx-auto backdrop-blur-xl bg-black/30 border-b border-white/5">
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="flex items-center space-x-2"
-        >
-          <div className="w-10 h-10 bg-gradient-to-tr from-purple-600 to-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
-            <span className="text-xl font-bold text-white">F</span>
-          </div>
-          <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-            FluentFlow
-          </span>
-        </motion.div>
+      <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+        isScrolled 
+          ? "bg-black/75 backdrop-blur-md border-b border-white/10 py-3 shadow-lg shadow-black/20" 
+          : "bg-transparent border-b border-transparent py-5"
+      }`}>
+        <nav className="flex items-center justify-between px-6 max-w-7xl mx-auto w-full">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center space-x-2"
+          >
+            <div className="w-10 h-10 bg-gradient-to-tr from-purple-600 to-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
+              <span className="text-xl font-bold text-white">F</span>
+            </div>
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+              FluentFlow
+            </span>
+          </motion.div>
 
-        <motion.div 
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="flex items-center space-x-4"
-        >
-          <Link href="/login" className="text-sm font-medium text-gray-300 hover:text-white transition-colors px-4 py-2">
-            Log in
-          </Link>
-          <Link href="/register" className="text-sm font-medium bg-white text-black hover:bg-gray-200 transition-colors px-5 py-2.5 rounded-full shadow-lg shadow-white/10">
-            Sign up
-          </Link>
-        </motion.div>
-      </nav>
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center space-x-4"
+          >
+            <Link href="/login" className="text-sm font-medium text-gray-300 hover:text-white transition-colors px-4 py-2">
+              Log in
+            </Link>
+            <Link href="/register" className="text-sm font-medium bg-white text-black hover:bg-gray-200 transition-colors px-5 py-2.5 rounded-full shadow-lg shadow-white/10">
+              Sign up
+            </Link>
+          </motion.div>
+        </nav>
+      </header>
 
       <main className="relative z-10 px-4 pb-24">
         <section className="max-w-6xl mx-auto text-center pt-16 md:pt-24">
