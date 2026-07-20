@@ -125,52 +125,42 @@ const useStreamingAvatarMessageState = () => {
 
   const handleUserTalkingMessage = (event: any) => {
     if (!event || typeof event.text !== "string") return;
-    const text = event.text;
+    const text = event.text.trim();
     if (!text) return;
 
-    if (currentSenderRef.current === MessageSender.CLIENT) {
-      setMessages((prev) => {
-        if (prev.length === 0) return prev;
+    setMessages((prev) => {
+      if (prev.length > 0) {
         const lastMsg = prev[prev.length - 1];
-        const oldText = lastMsg.content;
-
-        let newContent = text;
-        if (oldText && !text.startsWith(oldText) && !oldText.startsWith(text)) {
-          const separator = oldText.endsWith(" ") || text.startsWith(" ") ? "" : " ";
-          newContent = `${oldText}${separator}${text}`;
+        if (lastMsg.sender === MessageSender.CLIENT && lastMsg.content.trim() === text) {
+          return prev; // Deduplicate identical client messages
         }
-
-        return [
-          ...prev.slice(0, -1),
-          {
-            ...lastMsg,
-            content: newContent,
-          },
-        ];
-      });
-    } else {
+      }
       currentSenderRef.current = MessageSender.CLIENT;
-      setMessages((prev) => [
+      return [
         ...prev,
         {
           id: Date.now().toString(),
           sender: MessageSender.CLIENT,
           content: text,
         },
-      ]);
-    }
+      ];
+    });
   };
 
   const handleStreamingTalkingMessage = (event: any) => {
     if (!event || typeof event.text !== "string") return;
-    const text = event.text;
+    const text = event.text.trim();
     if (!text) return;
 
     if (currentSenderRef.current === MessageSender.AVATAR) {
       setMessages((prev) => {
         if (prev.length === 0) return prev;
         const lastMsg = prev[prev.length - 1];
-        const oldText = lastMsg.content;
+        const oldText = lastMsg.content.trim();
+
+        if (oldText === text) {
+          return prev; // Deduplicate identical text chunk
+        }
 
         let newContent = text;
         if (oldText && !text.startsWith(oldText) && !oldText.startsWith(text)) {
@@ -187,15 +177,23 @@ const useStreamingAvatarMessageState = () => {
         ];
       });
     } else {
-      currentSenderRef.current = MessageSender.AVATAR;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          sender: MessageSender.AVATAR,
-          content: text,
-        },
-      ]);
+      setMessages((prev) => {
+        if (prev.length > 0) {
+          const lastMsg = prev[prev.length - 1];
+          if (lastMsg.sender === MessageSender.AVATAR && lastMsg.content.trim() === text) {
+            return prev; // Deduplicate identical avatar messages
+          }
+        }
+        currentSenderRef.current = MessageSender.AVATAR;
+        return [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            sender: MessageSender.AVATAR,
+            content: text,
+          },
+        ];
+      });
     }
   };
 

@@ -15,13 +15,23 @@ export const MessageHistory: React.FC = () => {
     container.scrollTop = container.scrollHeight;
   }, [messages]);
 
+  // Filter out any duplicate messages with identical sender and content
+  const uniqueMessages = messages.filter((msg, idx, arr) => {
+    if (idx === 0) return true;
+    const prev = arr[idx - 1];
+    if (prev.sender === msg.sender && prev.content.trim() === msg.content.trim()) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <div
       ref={containerRef}
       className="w-full overflow-y-auto flex-1 flex flex-col gap-3 px-4 py-4 text-gray-900 dark:text-white custom-scrollbar"
     >
       <AnimatePresence>
-        {messages.map((message, index) => (
+        {uniqueMessages.map((message, index) => (
           <motion.div
             key={message.id}
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
